@@ -1,4 +1,4 @@
-# P03–P06: himoya uchun izohlar
+# P03–P07: himoya uchun izohlar
 
 Bu fayl har bir amaliyotda **nima qilindi** va **nega aynan shunday** qilinganini tushuntiradi.
 P28 dagi individual himoyada har bir qarorni o'zingiz asoslab berishingiz kerak bo'ladi, shuning
@@ -116,6 +116,58 @@ Bu Dependency Inversion tamoyilining amaldagi ko'rinishi.
   Bu qaror o'lchangan ehtiyoj paydo bo'lganda qayta ko'rib chiqiladi.
 - *Python `internal.py` ni import qilishni taqiqlamaydi-ku?* To'g'ri. Python da haqiqiy "private" modul yo'q,
   shuning uchun chegarani tilning o'zi emas, `lint-imports` tekshiruvi ushlab turadi (P25 dan CI da ham).
+
+---
+
+## P07 · HTTP API va PostgreSQL
+
+**Nima qilindi:** ilova `http://localhost:5080` da FastAPI orqali 3 ta endpoint bilan ishlaydi
+(`GET /rooms/availability`, `POST /reservations`, `DELETE /reservations/{id}`). Bronlar PostgreSQL'da
+saqlanadi (`docker-compose.yml` + `db/init.sql`). Shuningdek `capacity.md`, `openapi.yaml`,
+4 ta API testi va `api-check.md` qo'shildi. Booking qoidasi (`BookingService`) **umuman o'zgarmadi**:
+yangi kod faqat chekkalarda — `api.py` da, store'larda va `main.py` dagi wiring'da.
+
+**Capacity hisobi:** 1 440 × 20 = 28 800 qidiruv/kun → ÷ 86 400 s = 0,33/s → × 10 (peak) = 3,33/s
+(= daqiqasiga 200, ya'ni S1). Har bir qidiruv har bir xona uchun bazaga alohida so'rov yuboradi:
+3,33 × 40 = 133 so'rov/s. Shu raqam P08 da nega aynan qidiruv cache qilinishini tushuntiradi.
+
+**Asosiy qarorlar va ularning sababi:**
+- **Contract-first (`openapi.yaml`).** Avval shartnoma, keyin kod. FastAPI o'z OpenAPI hujjatini
+  generatsiya qilmaydi (`openapi_url=None`), aksincha qo'lda yozilgan faylni `/openapi.yaml` orqali beradi.
+  Shunda haqiqat manbai bitta bo'ladi.
+- **Problem details (RFC 9457).** Har bir xato bir xil shaklda qaytadi: `title`, `status`, `detail` va
+  `application/problem+json`. Klient faqat `title` ni solishtiradi, `detail` esa odamlar uchun.
+- **Status kodlar:** 201 (yaratildi), 204 (bekor qilindi, body yo'q), 400 (noto'g'ri so'rov),
+  404 (topilmadi), 409 (konflikt — xona band). 409 ni 400 dan ajratish muhim: so'rov to'g'ri, lekin
+  serverdagi holat bilan to'qnashdi.
+- **Cursor pagination (`after`).** Offset'dan farqli o'laroq, sahifalar orasida yangi qator qo'shilsa ham
+  takror yoki o'tkazib yuborish bo'lmaydi. Tartib matn bo'yicha, shuning uchun R10 R7 dan oldin keladi.
+- **Unit of Work.** Har bir HTTP so'rov o'z `Session` ini oladi; `with` bloki tugaganda `save_changes()`
+  commit qiladi. Bir so'rov — bir tranzaksiya.
+- **Jadvallar orasida foreign key yo'q.** `rooms` Rooms moduliga, `reservations` esa Reservations moduliga
+  tegishli (P05/P06 chegaralari bazada ham saqlanadi). Bu modullarni keyinchalik alohida servisga ajratishni
+  osonlashtiradi, lekin evaziga bazaning o'zi "R99 xonasi mavjud emas" deb tekshirmaydi — buni API qiladi.
+- **API testlari in-memory store bilan.** Ular HTTP qatlamini tez va bazasiz tekshiradi.
+  PostgreSQL store'lari esa `api-check.md` dagi haqiqiy so'rovlar va restart sinovi bilan tekshirildi.
+
+**Ehtimoliy savollar:**
+- *Nega `BookingService` o'zgarmadi?* Chunki u `ReservationStore` protokoliga bog'liq (Dependency Inversion,
+  P04). PostgreSQL store xuddi shu metodlarni bajaradi, shuning uchun faqat wiring o'zgardi.
+- *Restartdan keyin bron nega yo'qolmadi?* Bron endi ilova xotirasida emas, PostgreSQL'dagi qatorda;
+  ma'lumotlar esa `hotel-data` volume'da saqlanadi (`docker compose down -v` uni o'chiradi).
+
+**Production nuqtai nazaridan (o'zingiz bilib qo'ying):**
+- **N+1 muammosi.** `find_free_rooms` har bir xona uchun alohida `has_overlap` so'rovini yuboradi:
+  40 ta xona — 40 ta so'rov. Bitta `NOT EXISTS` yoki `LEFT JOIN` bilan barcha band xonalarni bitta so'rovda
+  olish mumkin edi. Kurs buni ataylab qoldirgan: P08 da o'lchab ko'rasiz.
+- **Race hali ham bor.** Bundan tashqari, `R{101 + count()}` ID'si bir vaqtdagi ikki so'rovda bir xil
+  chiqishi mumkin. Endi `id` PRIMARY KEY bo'lgani uchun ikkinchi `flush()` `IntegrityError` beradi,
+  bu esa ushlanmagani uchun **500** ga aylanadi. To'g'ri yechim — sequence/UUID va
+  overlap uchun `EXCLUDE USING gist` constraint (P09).
+- **Parol kodda** (`hotel:hotel`) — faqat laptop uchun. Productionda environment variable yoki secrets
+  manager ishlatiladi.
+- **Endpoint'lar sync (`def`).** FastAPI ularni threadpool'da ishlatadi, shuning uchun bu yerda xato emas.
+  Lekin sync SQLAlchemy'ni `async def` ichida chaqirish event loop'ni bloklab qo'yardi.
 
 ---
 

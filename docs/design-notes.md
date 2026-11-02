@@ -124,3 +124,32 @@ hotel_booking/reservations/booking.py. The 8 tests still passed; lint-imports fa
 - Demo: `python main.py` → the same nine lines as in "Before" (compared with diff: identical).
 - Race: `python main.py --race` → still "Double booking!": moving code into modules does not
   fix the race; P09 fixes it in the database.
+
+# P07 design notes
+
+## API decisions
+- Order of the free rooms: text order of the room number, so R10 comes before R7. The "after"
+  cursor compares text the same way, so every client knows where the next page starts.
+- What a client compares: the problem's title (Unavailable, InvalidDates, UnknownRoom,
+  InvalidRequest, NotFound). detail is a sentence for people and may change.
+- Room type: catalog data from the rooms table (Standard, Deluxe), not a fixed list in the
+  contract; a new type needs no API change.
+
+## API tests
+- GET /rooms/availability?checkIn=2026-11-12&checkOut=2026-11-14 → 200 with R7 and R8, next null.
+- POST /reservations Maya R7 12–14 Nov → 201 {"id":"R101",...}; then Omar R7 13–15 Nov → 409 Unavailable.
+- POST /reservations with checkIn = checkOut (15–15 Nov) → 400 InvalidDates as application/problem+json.
+- POST Maya, then DELETE /reservations/R101 → 204; DELETE again → 404 NotFound.
+Broken on purpose: changing the expected 409 to 201 made the second test fail ("201 != 409");
+changed back, all green.
+
+## After
+- Checks: `python -m unittest -v` → Ran 12 tests ... OK (8 behaviour + 4 API);
+  `lint-imports` → Contracts: 3 kept, 0 broken. `--demo` prints the same nine lines; `--race`
+  still double-books (P09).
+- Seven requests against PostgreSQL: all seven ✓ (docs/api-check.md).
+- Restart check: after stopping and starting the app, R7 is still booked for 12–14 Nov;
+  the reservations table keeps R101 (Cancelled) and R102 (Confirmed).
+- requirements.txt: the reference pins sqlalchemy==2.1.6, which needs Python 3.11+, while the
+  course allows Python 3.10. An environment marker installs SQLAlchemy 2.0.55 on Python 3.10;
+  the 12 tests and all seven PostgreSQL requests were checked with both versions.
