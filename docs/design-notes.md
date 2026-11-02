@@ -1,5 +1,27 @@
 # P03 design notes
 
+## Why design before code
+Low-level design decides which classes the app has, what each one keeps (its data) and does
+(its methods), and who calls whom. For example: the overlap rule lives only in DateRange,
+Reservation knows its own status, and BookingService runs check → save → email → answer in
+that order. Deciding this in a diagram is cheap; changing it later in the code is expensive,
+and a rule typed in two places (website and reception desk) drifts apart.
+
+## Where the methods live
+- cancel() lives in Reservation, because cancelling changes only the reservation's own status;
+  nothing is deleted, so R101 stays in the store as Cancelled and the history is kept.
+- has_overlap() lives in ReservationStore, because only the store can see all the reservations
+  of a room at once; one Reservation only knows about itself.
+
+## Activity traces
+- Omar, R7, 13–15 Nov (Maya has 12–14): Check-out after check-in? Yes. A Confirmed booking
+  shares a night? Yes, the 13th. Ends at "Unavailable · save nothing".
+- Nora, R7, 14–16 Nov (Maya has 12–14): Check-out after check-in? Yes. A Confirmed booking
+  shares a night? No: Maya leaves on the 14th, so 12 < 16 but 14 < 14 is false. Save the
+  reservation as Confirmed → send the email → ends at "Accepted R102".
+- Omar, R8, 15–15 Nov: Check-out after check-in? No (15 is not after 15). Ends at
+  "InvalidDates · save nothing"; the second question is never asked.
+
 ## The race
 Prediction: R7 will have 2 Confirmed reservations for 12–14 November.
 What happened: both Maya and Omar got Accepted, so R7 is double-booked.
@@ -58,3 +80,47 @@ Run on 24 October 2026, Python 3, from the hotel-booking folder.
 - The race is still there: check and save are two separate steps (fixed in P09).
 - Reservation ids come from `101 + count()`: unsafe under concurrency.
 - R6 catches every Exception; a real system would catch only delivery errors, log them and retry the message.
+
+# P06 design notes
+
+## Before
+Run on 2 November 2026, Python 3, from the hotel-booking folder, before moving any code.
+- Tests: `python -m unittest -v` → Ran 8 tests ... OK
+- Demo: `python main.py` → the nine P03/P04 lines, ending with "Confirmation emails sent: 2".
+- Race: `python main.py --race` → "Confirmed reservations for R7 on 12-14 Nov: 2", "Double booking!".
+
+## Modules
+
+| Module | Public contract (others may use) | Internal code (only the module, the wiring and the tests) |
+|---|---|---|
+| Rooms | Room, the room catalog promise (RoomCatalog) | InMemoryRoomCatalog |
+| Reservations | BookingService, BookingResult, Reservation, DateRange, Guest, ReservationStatus, the store promise (ReservationStore) | InMemoryReservationStore |
+| Payments | PaymentStatus, the payment service promise (PaymentService) | SimulatedPaymentService |
+| Notifications | Confirmation, the notification sender promise (NotificationSender) | EmailNotificationSender, SmsNotificationSender |
+
+Order of the moves: Rooms and Notifications first (they need no other module), then
+Reservations (it needs both), then the new Payments contract. The tests stayed green after
+every move. The only change inside BookingService: reserve() now sends Notifications' own
+Confirmation (the five fields from contexts.md "Between contexts") instead of the whole
+Reservation, so Notifications no longer depends on Reservations and there is no circle.
+
+## Architecture rules
+1. Reservations uses only the public contracts of other modules: BookingService may use the
+   Notifications contract, never the email sender.
+2. Rooms does not depend on any other module: it knows nothing about reservations, money or messages.
+3. Payments and Notifications do not depend on Reservations: the arrows point one way, from
+   Reservations outwards, so there is never a dependency circle.
+They live in pyproject.toml and run with `lint-imports` (import-linter).
+
+## Broken on purpose
+I added `from hotel_booking.notifications.internal import EmailNotificationSender` to
+hotel_booking/reservations/booking.py. The 8 tests still passed; lint-imports failed rule 1,
+"Reservations uses only the public contracts of other modules", naming
+`hotel_booking.reservations.booking -> hotel_booking.notifications.internal (l.8)`.
+"Contracts: 2 kept, 1 broken." I removed the line and all checks were green again.
+
+## After
+- Tests: `python -m unittest -v` → Ran 8 tests ... OK; `lint-imports` → Contracts: 3 kept, 0 broken.
+- Demo: `python main.py` → the same nine lines as in "Before" (compared with diff: identical).
+- Race: `python main.py --race` → still "Double booking!": moving code into modules does not
+  fix the race; P09 fixes it in the database.

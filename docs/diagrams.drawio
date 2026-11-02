@@ -1,4 +1,110 @@
 <mxfile host="app.diagrams.net">
+  <diagram id="use-cases" name="Use cases">
+    <mxGraphModel dx="1000" dy="640" grid="1" gridSize="10" guides="1" page="1" pageWidth="1000" pageHeight="640">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="sys" value="Hotel booking app" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=14;" vertex="1" parent="1"><mxGeometry x="300" y="40" width="420" height="540" as="geometry"/></mxCell>
+<mxCell id="guest" value="Guest" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1"><mxGeometry x="110" y="140" width="40" height="80" as="geometry"/></mxCell>
+<mxCell id="recep" value="Receptionist" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1"><mxGeometry x="110" y="380" width="40" height="80" as="geometry"/></mxCell>
+<mxCell id="uc_search" value="Search free rooms" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="400" y="100" width="220" height="70" as="geometry"/></mxCell>
+<mxCell id="uc_book" value="Book a room" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="400" y="220" width="220" height="70" as="geometry"/></mxCell>
+<mxCell id="uc_view" value="View a booking" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="400" y="340" width="220" height="70" as="geometry"/></mxCell>
+<mxCell id="uc_cancel" value="Cancel a booking" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="400" y="460" width="220" height="70" as="geometry"/></mxCell>
+<mxCell id="uc_l1" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="guest" target="uc_search"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="uc_l2" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="guest" target="uc_book"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="uc_l3" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="guest" target="uc_view"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="uc_l4" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="guest" target="uc_cancel"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="uc_l5" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="recep" target="uc_search"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="uc_l6" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="recep" target="uc_book"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="uc_l7" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="recep" target="uc_view"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="uc_l8" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="recep" target="uc_cancel"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="uc_note" value="2 actors outside the box, 4 goals inside, 8 lines.&lt;br&gt;Search → find_free_rooms · Book → reserve · View → find · Cancel → cancel" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=6;" vertex="1" parent="1"><mxGeometry x="760" y="260" width="210" height="110" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="classes-v1" name="Classes">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" page="1" pageWidth="1400" pageHeight="900">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="c_svc" value="&lt;p style=&quot;margin:4px;text-align:center;&quot;&gt;&lt;b&gt;BookingService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;- rooms: list[Room]&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ find_free_rooms(stay): list[Room]&lt;br&gt;+ reserve(guest, room, stay): BookingResult&lt;br&gt;+ cancel(reservation_id): bool&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="520" y="30" width="300" height="124" as="geometry"/></mxCell>
+<mxCell id="c_status" value="&lt;p style=&quot;margin:4px;text-align:center;&quot;&gt;«enumeration»&lt;br&gt;&lt;b&gt;ReservationStatus&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;Confirmed&lt;br&gt;Cancelled&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;&amp;nbsp;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="60" y="300" width="200" height="124" as="geometry"/></mxCell>
+<mxCell id="c_store" value="&lt;p style=&quot;margin:4px;text-align:center;&quot;&gt;&lt;b&gt;ReservationStore&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;- rows: list[Reservation]&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ has_overlap(room, stay): bool&lt;br&gt;+ save(reservation)&lt;br&gt;+ find(id): Reservation&lt;br&gt;+ count_confirmed(room, stay): int&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="500" y="280" width="280" height="141" as="geometry"/></mxCell>
+<mxCell id="c_email" value="&lt;p style=&quot;margin:4px;text-align:center;&quot;&gt;&lt;b&gt;EmailSender&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ sent: int&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ send_confirmation(reservation)&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="940" y="300" width="260" height="90" as="geometry"/></mxCell>
+<mxCell id="c_guest" value="&lt;p style=&quot;margin:4px;text-align:center;&quot;&gt;&lt;b&gt;Guest&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ name: str&lt;br&gt;+ email: str&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;&amp;nbsp;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="60" y="620" width="190" height="107" as="geometry"/></mxCell>
+<mxCell id="c_res" value="&lt;p style=&quot;margin:4px;text-align:center;&quot;&gt;&lt;b&gt;Reservation&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ id: str&lt;br&gt;+ status: ReservationStatus&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ blocks(room, stay): bool&lt;br&gt;+ cancel(): bool&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="400" y="600" width="240" height="124" as="geometry"/></mxCell>
+<mxCell id="c_room" value="&lt;p style=&quot;margin:4px;text-align:center;&quot;&gt;&lt;b&gt;Room&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ number: str&lt;br&gt;+ type: str&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;&amp;nbsp;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="780" y="620" width="190" height="107" as="geometry"/></mxCell>
+<mxCell id="c_range" value="&lt;p style=&quot;margin:4px;text-align:center;&quot;&gt;&lt;b&gt;DateRange&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ check_in: date&lt;br&gt;+ check_out: date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0 6px;&quot;&gt;+ is_valid(): bool&lt;br&gt;+ overlaps(other): bool&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;fillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="1060" y="600" width="240" height="124" as="geometry"/></mxCell>
+<mxCell id="cl1" value="uses" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="c_svc" target="c_store"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cl2" value="uses" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="c_svc" target="c_email"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cl3" value="keeps&lt;br&gt;0..*" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="c_store" target="c_res"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cl4" value="has&lt;br&gt;1" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="c_res" target="c_status"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cl5" value="makes&lt;br&gt;1 ⟶ 0..*" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="c_guest" target="c_res"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cl6" value="reserves&lt;br&gt;0..* ⟶ 1" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="c_res" target="c_room"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cl7" value="owns stay dates&lt;br&gt;1 ⟶ 1" style="endArrow=none;startArrow=diamondThin;startFill=1;startSize=14;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="c_res" target="c_range"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="520" y="790"/><mxPoint x="1180" y="790"/></Array></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq-book" name="Sequence - book">
+    <mxGraphModel dx="1200" dy="640" grid="1" gridSize="10" guides="1" page="1" pageWidth="1200" pageHeight="640">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="seq-book_t" value="Maya books R7 for 12–14 November: check → save → email → answer" style="text;html=1;fontStyle=1;fontSize=14;align=left;" vertex="1" parent="1"><mxGeometry x="40" y="10" width="900" height="30" as="geometry"/></mxCell>
+<mxCell id="seq-book_ll0" value="Maya" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;size=40;" vertex="1" parent="1"><mxGeometry x="80" y="60" width="160" height="520" as="geometry"/></mxCell>
+<mxCell id="seq-book_ll1" value="BookingService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;size=40;" vertex="1" parent="1"><mxGeometry x="340" y="60" width="160" height="520" as="geometry"/></mxCell>
+<mxCell id="seq-book_ll2" value="ReservationStore" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;size=40;" vertex="1" parent="1"><mxGeometry x="600" y="60" width="160" height="520" as="geometry"/></mxCell>
+<mxCell id="seq-book_ll3" value="EmailSender" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;size=40;" vertex="1" parent="1"><mxGeometry x="860" y="60" width="160" height="520" as="geometry"/></mxCell>
+<mxCell id="seq-book_m1" value="1. reserve(Maya, R7, 12–14 Nov)" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="160" y="140" as="sourcePoint"/><mxPoint x="420" y="140" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-book_m2" value="2. has_overlap(R7, 12–14 Nov)" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="420" y="210" as="sourcePoint"/><mxPoint x="680" y="210" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-book_m3" value="3. false: no booking shares a night" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="680" y="280" as="sourcePoint"/><mxPoint x="420" y="280" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-book_m4" value="4. save(R101, Confirmed)" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="420" y="350" as="sourcePoint"/><mxPoint x="680" y="350" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-book_m5" value="5. send_confirmation(R101)" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="420" y="420" as="sourcePoint"/><mxPoint x="940" y="420" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-book_m6" value="6. Accepted R101" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="420" y="490" as="sourcePoint"/><mxPoint x="160" y="490" as="targetPoint"/></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq-cancel" name="Sequence - cancel">
+    <mxGraphModel dx="1200" dy="640" grid="1" gridSize="10" guides="1" page="1" pageWidth="1200" pageHeight="640">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="seq-cancel_t" value="Maya cancels R101: nothing is deleted, R101 stays in the store as Cancelled" style="text;html=1;fontStyle=1;fontSize=14;align=left;" vertex="1" parent="1"><mxGeometry x="40" y="10" width="900" height="30" as="geometry"/></mxCell>
+<mxCell id="seq-cancel_ll0" value="Maya" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;size=40;" vertex="1" parent="1"><mxGeometry x="80" y="60" width="160" height="520" as="geometry"/></mxCell>
+<mxCell id="seq-cancel_ll1" value="BookingService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;size=40;" vertex="1" parent="1"><mxGeometry x="340" y="60" width="160" height="520" as="geometry"/></mxCell>
+<mxCell id="seq-cancel_ll2" value="ReservationStore" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;size=40;" vertex="1" parent="1"><mxGeometry x="600" y="60" width="160" height="520" as="geometry"/></mxCell>
+<mxCell id="seq-cancel_ll3" value="R101" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;size=40;" vertex="1" parent="1"><mxGeometry x="860" y="60" width="160" height="520" as="geometry"/></mxCell>
+<mxCell id="seq-cancel_m1" value="1. cancel(&quot;R101&quot;)" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="160" y="140" as="sourcePoint"/><mxPoint x="420" y="140" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-cancel_m2" value="2. find(&quot;R101&quot;)" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="420" y="210" as="sourcePoint"/><mxPoint x="680" y="210" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-cancel_m3" value="3. R101" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="680" y="280" as="sourcePoint"/><mxPoint x="420" y="280" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-cancel_m4" value="4. cancel()" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="420" y="350" as="sourcePoint"/><mxPoint x="940" y="350" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-cancel_m5" value="5. true: now Cancelled" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="940" y="420" as="sourcePoint"/><mxPoint x="420" y="420" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="seq-cancel_m6" value="6. true" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="420" y="490" as="sourcePoint"/><mxPoint x="160" y="490" as="targetPoint"/></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="activity-book" name="Activity - book">
+    <mxGraphModel dx="1000" dy="900" grid="1" gridSize="10" guides="1" page="1" pageWidth="1000" pageHeight="900">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="a_start" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="285" y="30" width="30" height="30" as="geometry"/></mxCell>
+<mxCell id="a_recv" value="Reserve request received&lt;br&gt;(guest, room, stay)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;" vertex="1" parent="1"><mxGeometry x="200" y="100" width="200" height="60" as="geometry"/></mxCell>
+<mxCell id="a_d1" value="Check-out after check-in?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="200" y="200" width="200" height="110" as="geometry"/></mxCell>
+<mxCell id="a_inv" value="InvalidDates · save nothing" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;" vertex="1" parent="1"><mxGeometry x="520" y="225" width="220" height="60" as="geometry"/></mxCell>
+<mxCell id="a_d2" value="A Confirmed booking&lt;br&gt;shares a night?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="170" y="355" width="260" height="140" as="geometry"/></mxCell>
+<mxCell id="a_unav" value="Unavailable · save nothing" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;" vertex="1" parent="1"><mxGeometry x="520" y="390" width="220" height="60" as="geometry"/></mxCell>
+<mxCell id="a_save" value="Save the reservation as Confirmed" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;" vertex="1" parent="1"><mxGeometry x="200" y="530" width="200" height="60" as="geometry"/></mxCell>
+<mxCell id="a_mail" value="Send the confirmation email" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;" vertex="1" parent="1"><mxGeometry x="200" y="630" width="200" height="60" as="geometry"/></mxCell>
+<mxCell id="a_ok" value="Accepted + reservation id" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;" vertex="1" parent="1"><mxGeometry x="200" y="730" width="200" height="60" as="geometry"/></mxCell>
+<mxCell id="a_end" value="" style="ellipse;html=1;shape=doubleEllipse;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="285" y="830" width="30" height="30" as="geometry"/></mxCell>
+<mxCell id="a_end2" value="" style="ellipse;html=1;shape=doubleEllipse;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="800" y="240" width="30" height="30" as="geometry"/></mxCell>
+<mxCell id="a_end3" value="" style="ellipse;html=1;shape=doubleEllipse;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="800" y="405" width="30" height="30" as="geometry"/></mxCell>
+<mxCell id="a_e0" value="" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_start" target="a_recv"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e1" value="" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_recv" target="a_d1"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e2" value="No" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_d1" target="a_inv"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e3" value="Yes" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_d1" target="a_d2"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e4" value="Yes" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_d2" target="a_unav"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e5" value="No" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_d2" target="a_save"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e6" value="" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_save" target="a_mail"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e7" value="" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_mail" target="a_ok"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e8" value="" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_ok" target="a_end"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e9" value="" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_inv" target="a_end2"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="a_e10" value="" style="endArrow=block;endFill=1;html=1;rounded=0;" edge="1" parent="1" source="a_unav" target="a_end3"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
   <diagram id="classes-after" name="Classes - after">
     <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" page="1" pageWidth="1400" pageHeight="900">
       <root><mxCell id="0"/><mxCell id="1" parent="0"/>
@@ -38,6 +144,37 @@
 <mxCell id="i4" value="implements" style="endArrow=block;endFill=0;endSize=14;dashed=1;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;fontSize=10;" edge="1" parent="1" source="fake" target="inote"><mxGeometry relative="1" as="geometry"/></mxCell>
 <mxCell id="title" value="&lt;b&gt;P04 · Classes - after&lt;/b&gt;&lt;br&gt;BookingService depends only on two interfaces; main.py chooses the real classes." style="text;html=1;align=left;fontSize=13;" vertex="1" parent="1"><mxGeometry x="20" y="-40" width="700" height="40" as="geometry"/></mxCell>
 <mxCell id="note" value="Guest, Room, DateRange, Reservation are unchanged from P03 (hotel_booking/domain.py) and left out here." style="shape=note;html=1;whiteSpace=wrap;fillColor=#fafafa;strokeColor=#bbbbbb;fontSize=11;size=14;" vertex="1" parent="1"><mxGeometry x="1020" y="40" width="260" height="60" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="context-map" name="Context map">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" page="1" pageWidth="1200" pageHeight="700">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="cm_rooms" value="&lt;b&gt;Rooms (Inventory)&lt;/b&gt;&lt;br&gt;Keeps: rooms, type, nightly price&lt;br&gt;Status: in service / out of service&lt;br&gt;Owns: which rooms are on sale, the price rules" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="60" y="60" width="340" height="120" as="geometry"/></mxCell>
+<mxCell id="cm_pay" value="&lt;b&gt;Payments&lt;/b&gt;&lt;br&gt;Keeps: deposits and their amount&lt;br&gt;Status: Paid / Declined&lt;br&gt;Owns: money rules (30% deposit, refunds)" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="760" y="60" width="340" height="120" as="geometry"/></mxCell>
+<mxCell id="cm_res" value="&lt;b&gt;Reservations&lt;/b&gt;&lt;br&gt;Keeps: guests, stays, reservations (R101…)&lt;br&gt;Status: Confirmed / Cancelled&lt;br&gt;Owns: no two Confirmed reservations of a room share a night" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="60" y="440" width="340" height="130" as="geometry"/></mxCell>
+<mxCell id="cm_not" value="&lt;b&gt;Notifications&lt;/b&gt;&lt;br&gt;Keeps: messages and their channel (email / SMS)&lt;br&gt;Status: Sent / Failed&lt;br&gt;Owns: how and whether a guest is told" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="760" y="440" width="340" height="130" as="geometry"/></mxCell>
+<mxCell id="cm_a1" value="Asks: which rooms exist?" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1" source="cm_res" target="cm_rooms"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cm_a2" value="Asks: take a deposit (P17)" style="endArrow=block;endFill=1;html=1;rounded=0;fontSize=12;" edge="1" parent="1" source="cm_res" target="cm_pay"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cm_a3" value="Announces: ReservationConfirmed" style="endArrow=block;endFill=1;dashed=1;dashPattern=2 4;strokeColor=#2e7d32;fontColor=#2e7d32;strokeWidth=2;html=1;rounded=0;fontSize=12;" edge="1" parent="1" source="cm_res" target="cm_not"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="cm_legend" value="Solid arrow = a question; Reservations waits for the answer.&lt;br&gt;Green dotted arrow = an event; Reservations does not wait.&lt;br&gt;Every arrow starts at Reservations; nothing points back at it." style="text;html=1;whiteSpace=wrap;align=left;fontSize=12;fontColor=#555555;" vertex="1" parent="1"><mxGeometry x="60" y="610" width="1040" height="60" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="modules" name="Modules">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" page="1" pageWidth="1200" pageHeight="700">
+      <root><mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="md_res" value="&lt;b&gt;Reservations module&lt;/b&gt;&lt;br&gt;BookingService · booking rule&lt;br&gt;&lt;i&gt;hotel_booking.reservations&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="420" y="40" width="340" height="90" as="geometry"/></mxCell>
+<mxCell id="md_rooms" value="&lt;b&gt;Rooms contract&lt;/b&gt;&lt;br&gt;Room · RoomCatalog" style="rounded=0;whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1"><mxGeometry x="60" y="300" width="260" height="80" as="geometry"/></mxCell>
+<mxCell id="md_pay" value="&lt;b&gt;Payments contract&lt;/b&gt;&lt;br&gt;PaymentStatus · PaymentService" style="rounded=0;whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1"><mxGeometry x="460" y="300" width="260" height="80" as="geometry"/></mxCell>
+<mxCell id="md_not" value="&lt;b&gt;Notifications contract&lt;/b&gt;&lt;br&gt;Confirmation · NotificationSender" style="rounded=0;whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1"><mxGeometry x="860" y="300" width="280" height="80" as="geometry"/></mxCell>
+<mxCell id="md_email" value="&lt;b&gt;EmailNotificationSender&lt;/b&gt;&lt;br&gt;&lt;i&gt;notifications.internal&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=center;dashed=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1"><mxGeometry x="860" y="540" width="280" height="80" as="geometry"/></mxCell>
+<mxCell id="md_u1" value="Uses" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="md_res" target="md_rooms"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="md_u2" value="Uses" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="md_res" target="md_pay"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="md_u3" value="Uses" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="md_res" target="md_not"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="md_impl" value="Implements" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="md_email" target="md_not"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+<mxCell id="md_bad" value="Forbidden" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#d32f2f;fontColor=#d32f2f;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="md_res" target="md_email"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="390" y="85"/><mxPoint x="390" y="580"/></Array></mxGeometry></mxCell>
+<mxCell id="md_legend" value="Dashed arrow = an import in the code. Purple dashed box = internal code: only its own module, main.py and the tests may name it.&lt;br&gt;The red arrow is what lint-imports rejects (contract: Reservations uses only the public contracts of other modules)." style="text;html=1;whiteSpace=wrap;align=left;fontSize=12;fontColor=#555555;" vertex="1" parent="1"><mxGeometry x="40" y="640" width="1100" height="50" as="geometry"/></mxCell>
       </root>
     </mxGraphModel>
   </diagram>
