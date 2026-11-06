@@ -1,57 +1,60 @@
-# Hotel booking · ASDA course project (23-309 SW)
+# Mehmonxona bron qilish · ASDA kurs loyihasi (23-309 SW)
 
-The hotel booking app built across the Advanced Software Design & Architecture practices.
-Current state: **P07**, a modular monolith with four modules (Rooms, Reservations, Payments, Notifications)
-behind an HTTP API on http://localhost:5080, with its rooms and reservations in PostgreSQL.
+[English](README.en.md) · **O'zbekcha**
 
-## Run
+Advanced Software Design & Architecture amaliyotlari davomida qurilayotgan mehmonxona bron qilish ilovasi.
+Hozirgi holat: **P07**. Bu to'rtta moduldan (Rooms, Reservations, Payments, Notifications) iborat
+modular monolith. Ilova http://localhost:5080 dagi HTTP API orqali ishlaydi, xonalar va bronlar
+PostgreSQL'da saqlanadi.
 
-Python 3.10 or newer and Docker Desktop.
+## Ishga tushirish
+
+Python 3.10 yoki undan yangi versiya va Docker Desktop kerak.
 
 ```text
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 python -m pip install -r requirements.txt
 
-docker compose up -d             # PostgreSQL with rooms R7 and R8 (db/init.sql)
-python main.py                   # the API on http://localhost:5080 (contract: /openapi.yaml)
-python main.py --demo            # the nine-line demo, with the data in lists
-python main.py --race            # two guests book R7 at the same moment (still double-books until P09)
+docker compose up -d             # R7 va R8 xonalari bilan PostgreSQL (db/init.sql)
+python main.py                   # http://localhost:5080 dagi API (shartnoma: /openapi.yaml)
+python main.py --demo            # to'qqiz qatorli demo, ma'lumotlar ro'yxatlarda
+python main.py --race            # ikki mehmon R7 ni bir vaqtda bron qiladi (P09 gacha double booking bo'ladi)
 ```
 
-Checks: 12 tests (8 behaviour + 4 API) and the three module borders from `pyproject.toml`.
+Tekshiruvlar: 12 ta test (8 ta xulq + 4 ta API) va `pyproject.toml` dagi uchta modul chegarasi.
 
 ```text
 python -m unittest -v
-lint-imports                     # expected: Contracts: 3 kept, 0 broken.
+lint-imports                     # kutilgan natija: Contracts: 3 kept, 0 broken.
 ```
 
-Stop the database with `docker compose down` (add `-v` only to delete its data).
+Bazani `docker compose down` bilan to'xtating (`-v` ni faqat ma'lumotlarni o'chirmoqchi bo'lsangiz qo'shing).
 
-## Layout
+## Tuzilishi
 
 ```text
 hotel_booking/
-├── rooms/           Room, RoomCatalog              | internal: InMemory/PostgresRoomCatalog
-├── reservations/    BookingService, the booking rule | internal: InMemory/PostgresReservationStore
-├── payments/        PaymentStatus, PaymentService  | internal: SimulatedPaymentService
-├── notifications/   Confirmation, NotificationSender | internal: Email/Sms senders
-└── api.py           the three HTTP endpoints, outside the four modules
-main.py              the wiring: the only app file that names internal code
-db/init.sql          the rooms and reservations tables (one per module, no foreign key)
+├── rooms/           Room, RoomCatalog                | ichki: InMemory/PostgresRoomCatalog
+├── reservations/    BookingService, bron qoidasi     | ichki: InMemory/PostgresReservationStore
+├── payments/        PaymentStatus, PaymentService    | ichki: SimulatedPaymentService
+├── notifications/   Confirmation, NotificationSender | ichki: Email/Sms yuboruvchilar
+└── api.py           uchta HTTP endpoint, to'rtta moduldan tashqarida
+main.py              wiring: ichki kodni nomlaydigan yagona ilova fayli
+db/init.sql          rooms va reservations jadvallari (har modulga bittadan, foreign key yo'q)
 ```
 
-## Docs
+## Hujjatlar
 
-| File | Practice |
+| Fayl | Amaliyot |
 |---|---|
-| `docs/requirements.md` | P03: R1–R6 with checks and proof lines |
-| `docs/design-notes.md` | P03, P04, P06 and P07 notes |
+| `docs/requirements.md` | P03: R1–R6 talablari, tekshiruvlari va isbot qatorlari |
+| `docs/design-notes.md` | P03, P04, P06 va P07 bo'yicha qaydlar |
 | `docs/diagrams.drawio` | Use cases, Classes, Sequence - book/cancel, Activity - book (P03); Classes - after (P04); Context map (P05); Modules (P06) |
-| `docs/quality-scenarios.md` | P05: stakeholders and S1–S6 |
-| `docs/contexts.md` | P05: words, four contexts, rule owners, what crosses each border |
-| `docs/adr-001-modular-monolith.md` | P06: the architecture decision |
-| `docs/capacity.md` | P07: the capacity estimate |
-| `docs/openapi.yaml` | P07: the API contract (three operations, five error titles) |
-| `docs/api-check.md` | P07: seven requests against PostgreSQL and the restart check |
-| `docs/himoya-izohlari.md` | Explanations in Uzbek for the individual defense |
+| `docs/quality-scenarios.md` | P05: manfaatdor tomonlar va S1–S6 ssenariylari |
+| `docs/contexts.md` | P05: so'zlar, to'rtta kontekst, qoida egalari, har bir chegaradan nima o'tadi |
+| `docs/adr-001-modular-monolith.md` | P06: arxitektura qarori |
+| `docs/capacity.md` | P07: sig'im (capacity) hisobi |
+| `docs/openapi.yaml` | P07: API shartnomasi (uchta operatsiya, beshta xato nomi) |
+| `docs/api-check.md` | P07: PostgreSQL'ga yuborilgan yettita so'rov va restart tekshiruvi |
+| `docs/himoya-izohlari.md` | Individual himoya uchun o'zbekcha izohlar |
