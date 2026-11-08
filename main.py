@@ -1,4 +1,4 @@
-"""P07 - Hotel booking: the P06 app behind an HTTP API, with its reservations in PostgreSQL.
+"""P08 - Hotel booking: the P07 API with a Redis cache for the free-room search.
 
 python main.py          -> the API on http://localhost:5080 (first: docker compose up -d)
 python main.py --demo   -> the P06 demo, with the data in lists
@@ -13,16 +13,19 @@ import time
 from contextlib import contextmanager
 from datetime import date
 
+import redis
 import uvicorn
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from hotel_booking.api import create_app
+from hotel_booking.availability import AvailabilityCache, RedisCache
 from hotel_booking.notifications.internal import EmailNotificationSender
 from hotel_booking.reservations import BookingResult, BookingService, DateRange, Guest
 from hotel_booking.reservations.internal import InMemoryReservationStore, PostgresReservationStore
 from hotel_booking.rooms import Room
 from hotel_booking.rooms.internal import InMemoryRoomCatalog, PostgresRoomCatalog
+from hotel_booking.stats import Stats
 
 R7 = Room("R7", "Standard")
 R8 = Room("R8", "Deluxe")
@@ -82,21 +85,37 @@ def run_race() -> None:
           if confirmed > 1 else "Only one guest has R7.")
 
 
+class CountingStore(PostgresReservationStore):
+    """The PostgreSQL store, counting its queries for GET /stats."""
+
+    def __init__(self, session: Session, rooms: list[Room], stats: Stats) -> None:
+        super().__init__(session, rooms)
+        self._stats = stats
+
+    def has_overlap(self, room: Room, stay: DateRange) -> bool:
+        self._stats.db_queries += 1
+        return super().has_overlap(room, stay)
+
+
 def run_api() -> None:
-    # The wiring for the web app: PostgreSQL from docker-compose.yml (HOTEL_DB_PORT only if 5432 is taken).
+    # The wiring for the web app: PostgreSQL and Redis from docker-compose.yml.
+    # HOTEL_DB_PORT is only needed if 5432 is taken; HOTEL_REDIS_URL only if Redis is not on localhost:6379.
     engine = create_engine(f"postgresql+psycopg://hotel:hotel@localhost:{os.getenv('HOTEL_DB_PORT', '5432')}/hotel")
     rooms = PostgresRoomCatalog(engine).all()
     email = EmailNotificationSender()
+    stats = Stats()
+    redis_client = redis.Redis.from_url(os.getenv("HOTEL_REDIS_URL", "redis://localhost:6379/0"), decode_responses=True)
+    availability = AvailabilityCache(RedisCache(redis_client), stats)
 
     @contextmanager
     def unit_of_work():
         # One request: a fresh store over its own session; save what changed at the end.
         with Session(engine) as session:
-            store = PostgresReservationStore(session, rooms)
+            store = CountingStore(session, rooms, stats)
             yield BookingService(rooms, store, email)
             store.save_changes()
 
-    uvicorn.run(create_app(rooms, unit_of_work), host="localhost", port=5080)
+    uvicorn.run(create_app(rooms, unit_of_work, availability, stats), host="localhost", port=5080)
 
 
 if __name__ == "__main__":

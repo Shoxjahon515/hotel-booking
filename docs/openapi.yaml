@@ -84,6 +84,17 @@ paths:
         "404":
           $ref: "#/components/responses/Problem"
           description: NotFound when there is no confirmed reservation with this id.
+  /stats:
+    get:
+      operationId: getStats
+      summary: Counters since the app started (P08 measurement)
+      description: dbQueries counts PostgreSQL overlap checks; cacheHits and cacheMisses count free-room searches answered by Redis or by PostgreSQL.
+      responses:
+        "200":
+          description: The counters.
+          content:
+            application/json:
+              example: { dbQueries: 2000, cacheHits: 999, cacheMisses: 1 }
 components:
   schemas:
     Room:

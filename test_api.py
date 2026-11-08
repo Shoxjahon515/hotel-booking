@@ -8,10 +8,12 @@ from contextlib import contextmanager
 from fastapi.testclient import TestClient
 
 from hotel_booking.api import create_app
+from hotel_booking.availability import AvailabilityCache, InMemoryCache
 from hotel_booking.notifications.internal import EmailNotificationSender
 from hotel_booking.reservations import BookingService
 from hotel_booking.reservations.internal import InMemoryReservationStore
 from hotel_booking.rooms import Room
+from hotel_booking.stats import Stats
 
 R7 = Room("R7", "Standard")
 R8 = Room("R8", "Deluxe")
@@ -20,15 +22,17 @@ MAYA = {"guestName": "Maya", "guestEmail": "maya@example.com", "room": "R7", "ch
 OMAR = {"guestName": "Omar", "guestEmail": "omar@example.com", "room": "R7", "checkIn": "2026-11-13", "checkOut": "2026-11-15"}
 
 
-def new_client() -> TestClient:
-    """The web app with the in-memory store; FastAPI's TestClient sends the requests without a network."""
+def new_client(stats: Stats | None = None) -> TestClient:
+    """The web app with the in-memory store and cache; FastAPI's TestClient sends the requests without a network."""
     service = BookingService([R7, R8], InMemoryReservationStore(), EmailNotificationSender())
+    stats = stats or Stats()
 
     @contextmanager
     def unit_of_work():
         yield service  # a list in memory has nothing to save at the end of a request
 
-    return TestClient(create_app([R7, R8], unit_of_work))
+    availability = AvailabilityCache(InMemoryCache(), stats)
+    return TestClient(create_app([R7, R8], unit_of_work, availability, stats))
 
 
 class ApiTests(unittest.TestCase):
@@ -60,6 +64,20 @@ class ApiTests(unittest.TestCase):
         second = client.delete("/reservations/R101")
         self.assertEqual(404, second.status_code)
         self.assertEqual("NotFound", second.json()["title"])
+
+    def test_the_second_identical_search_is_a_cache_hit(self):
+        stats = Stats()
+        client = new_client(stats)
+        client.get(SEARCH)
+        client.get(SEARCH)
+        self.assertEqual((1, 1), (stats.cache_misses, stats.cache_hits))
+
+    def test_a_booking_removes_the_room_from_the_cached_search(self):
+        client = new_client()
+        client.get(SEARCH)  # R7 and R8 are cached as free
+        client.post("/reservations", json=MAYA)
+        free = [room["number"] for room in client.get(SEARCH).json()["rooms"]]
+        self.assertEqual(["R8"], free)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
-"""The HTTP API: three endpoints that turn HTTP requests into BookingService calls and back.
+"""The HTTP API: endpoints that turn HTTP requests into BookingService calls and back.
 
-It lives outside the four modules and uses only their public contracts. main.py decides
-which store the endpoints use, through unit_of_work.
+It lives outside the four modules and uses only their public contracts. main.py decides which
+store, cache and counters the endpoints use, through unit_of_work, availability and stats.
 """
 from __future__ import annotations
 
@@ -15,8 +15,10 @@ from fastapi import Body, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 
+from hotel_booking.availability import AvailabilityCache
 from hotel_booking.reservations import BookingResult, BookingService, DateRange, Guest
 from hotel_booking.rooms import Room
+from hotel_booking.stats import Stats
 
 # One request's work: "with unit_of_work() as service:" gives the endpoint a BookingService,
 # and whatever changed is saved when the with-block ends.
@@ -53,7 +55,8 @@ def to_http(result: BookingResult) -> JSONResponse:
     return problem(400, "InvalidDates", "checkOut must be after checkIn.")
 
 
-def create_app(rooms: list[Room], unit_of_work: UnitOfWork) -> FastAPI:
+def create_app(rooms: list[Room], unit_of_work: UnitOfWork,
+               availability: AvailabilityCache, stats: Stats) -> FastAPI:
     # docs/openapi.yaml is the contract, so FastAPI must not publish one of its own.
     app = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
 
@@ -76,8 +79,13 @@ def create_app(rooms: list[Room], unit_of_work: UnitOfWork) -> FastAPI:
         if not re.fullmatch(r"[0-9]{1,3}", limit) or not 1 <= int(limit) <= 100:
             return problem(400, "InvalidRequest", "limit must be a whole number from 1 to 100.")
 
-        with unit_of_work() as service:
-            free = service.find_free_rooms(stay)
+        def load() -> list[str]:
+            # The database answer, asked only when Redis has no copy (cache miss).
+            with unit_of_work() as service:
+                return [room.number for room in service.find_free_rooms(stay)]
+
+        free_numbers = set(availability.free_room_numbers(stay, load))
+        free = [room for room in rooms if room.number in free_numbers]
         # Cursor pagination (L04): the rooms after the last one the client has seen, in text order.
         rest = sorted((room for room in free if room.number > after), key=lambda room: room.number)
         page = rest[:int(limit)]
@@ -100,6 +108,8 @@ def create_app(rooms: list[Room], unit_of_work: UnitOfWork) -> FastAPI:
 
         with unit_of_work() as service:
             result = service.reserve(Guest(body["guestName"], body["guestEmail"]), room, DateRange(check_in, check_out))
+        if result.outcome == "Accepted":
+            availability.invalidate()  # P08: cached searches may still list this room; retire them
         return to_http(result)
 
     @app.delete("/reservations/{reservation_id}")
@@ -108,6 +118,11 @@ def create_app(rooms: list[Room], unit_of_work: UnitOfWork) -> FastAPI:
             cancelled = service.cancel(reservation_id)
         if not cancelled:
             return problem(404, "NotFound", f"There is no confirmed reservation {reservation_id}.")
+        availability.invalidate()  # P08: a freed night must show up in the next search
         return Response(status_code=204)
+
+    @app.get("/stats")
+    def get_stats() -> JSONResponse:
+        return JSONResponse(stats.snapshot())
 
     return app

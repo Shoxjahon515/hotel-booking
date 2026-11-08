@@ -1,4 +1,4 @@
-# The hotel booking app's database. Start: docker compose up -d   Stop: docker compose down
+# The hotel booking app's database and cache. Start: docker compose up -d   Stop: docker compose down
 services:
   db:
     image: postgres:18
@@ -11,6 +11,11 @@ services:
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro   # runs once, on the first start
       - hotel-data:/var/lib/postgresql                          # the data survives a restart
+
+  cache:
+    image: redis:8
+    ports:
+      - "6379:6379"
 
 volumes:
   hotel-data:
