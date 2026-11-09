@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from sqlalchemy import exists, func, select
+from sqlalchemy import exists, func, select, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 from hotel_booking.reservations.domain import DateRange, Guest, Reservation
@@ -29,6 +29,9 @@ class InMemoryReservationStore:
 
     def count_confirmed(self, room: Room, stay: DateRange) -> int:
         return sum(1 for row in self._rows if row.blocks(room, stay))
+
+    def lock_room(self, room: Room) -> None:
+        pass  # one process and one list: nothing can run in between (the race demo shows what this costs in general)
 
 
 class ReservationsTables(DeclarativeBase):
@@ -82,6 +85,11 @@ class PostgresReservationStore:
 
     def count_confirmed(self, room: Room, stay: DateRange) -> int:
         return self._session.scalar(select(func.count()).select_from(self._confirmed(room, stay).subquery()))
+
+    def lock_room(self, room: Room) -> None:
+        # P09: a transaction-level advisory lock for this room. A second booking for the same room waits here
+        # until the first one commits (save_changes); then its overlap check sees the committed reservation.
+        self._session.execute(text("SELECT pg_advisory_xact_lock(hashtext(:key))"), {"key": f"room:{room.number}"})
 
     def save_changes(self) -> None:
         """The end of the request: copy each loaded reservation's status to its row; SQLAlchemy writes what changed."""

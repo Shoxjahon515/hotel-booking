@@ -17,6 +17,7 @@ class ReservationStore(Protocol):
     def save(self, reservation: Reservation) -> None: ...
     def find(self, reservation_id: str) -> Reservation | None: ...
     def count_confirmed(self, room: Room, stay: DateRange) -> int: ...
+    def lock_room(self, room: Room) -> None: ...  # P09: bookings for one room wait for each other until the unit of work ends
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,7 @@ class BookingService:
     def reserve(self, guest: Guest, room: Room, stay: DateRange) -> BookingResult:
         if not stay.is_valid():
             return BookingResult("InvalidDates")
+        self.store.lock_room(room)  # P09: the check and the save below run while no other booking for this room can
         if self.store.has_overlap(room, stay):
             return BookingResult("Unavailable")
 

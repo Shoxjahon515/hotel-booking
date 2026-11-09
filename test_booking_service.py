@@ -90,5 +90,29 @@ class BookingServiceTests(unittest.TestCase):
         self.assertEqual(1, sms.sent)
 
 
+
+class LockOrderStore(InMemoryReservationStore):
+    """Records the order of the lock and the overlap check (P09)."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.calls: list[str] = []
+
+    def lock_room(self, room) -> None:
+        self.calls.append("lock")
+
+    def has_overlap(self, room, stay) -> bool:
+        self.calls.append("check")
+        return super().has_overlap(room, stay)
+
+
+class RoomLockTests(unittest.TestCase):
+    def test_the_room_is_locked_before_the_overlap_check(self):
+        store = LockOrderStore()
+        service = BookingService([R7, R8], store, FakeNotificationSender())
+        service.reserve(MAYA, R7, nov(12, 14))
+        self.assertEqual(["lock", "check"], store.calls[:2])
+
+
 if __name__ == "__main__":
     unittest.main()
