@@ -19,7 +19,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from hotel_booking.api import create_app
-from hotel_booking.availability import AvailabilityCache, RedisCache
+from hotel_booking.availability import AvailabilityCache, NoCache, RedisCache
 from hotel_booking.notifications.internal import EmailNotificationSender
 from hotel_booking.reservations import BookingResult, BookingService, DateRange, Guest
 from hotel_booking.reservations.internal import InMemoryReservationStore, PostgresReservationStore
@@ -104,8 +104,11 @@ def run_api() -> None:
     rooms = PostgresRoomCatalog(engine).all()
     email = EmailNotificationSender()
     stats = Stats()
-    redis_client = redis.Redis.from_url(os.getenv("HOTEL_REDIS_URL", "redis://localhost:6379/0"), decode_responses=True)
-    availability = AvailabilityCache(RedisCache(redis_client), stats)
+    if os.getenv("HOTEL_CACHE") == "off":  # P08 baseline: every search asks PostgreSQL
+        availability = AvailabilityCache(NoCache(), stats)
+    else:
+        redis_client = redis.Redis.from_url(os.getenv("HOTEL_REDIS_URL", "redis://localhost:6379/0"), decode_responses=True)
+        availability = AvailabilityCache(RedisCache(redis_client), stats)
 
     @contextmanager
     def unit_of_work():

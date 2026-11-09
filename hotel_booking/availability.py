@@ -56,6 +56,19 @@ class RedisCache:
         return int(self._client.incr(key))
 
 
+class NoCache:
+    """Stores nothing: every search goes to PostgreSQL. Used for the no-cache baseline in P08 (HOTEL_CACHE=off)."""
+
+    def get(self, key: str) -> str | None:
+        return None
+
+    def set(self, key: str, value: str, ttl_seconds: int) -> None:
+        pass
+
+    def incr(self, key: str) -> int:
+        return 0
+
+
 class AvailabilityCache:
     def __init__(self, cache: KeyValueCache, stats: Stats, ttl_seconds: int = TTL_SECONDS) -> None:
         self._cache = cache

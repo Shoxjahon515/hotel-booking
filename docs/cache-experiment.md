@@ -1,33 +1,57 @@
 # P08 experiment: cache and scale
 
-This file is the place for the measurements. The numbers come from running `measure.py` on your laptop;
-they are not estimated. Fill in the table after each run. Until then the table stays empty.
+The numbers below were measured with `measure.py` (1,000 searches for 12–14 Nov, then `GET /stats`).
+Both runs used the same code, the same database rows and the same machine, one after the other.
+
+## Environment of this run (not the Docker setup from docker-compose.yml)
+Docker is not installed on the laptop, so the run used the same software without containers:
+- PostgreSQL 18.6, from the `@embedded-postgres/linux-arm64` npm package (same major version as `postgres:18` in docker-compose.yml). `db/init.sql` was loaded unchanged.
+- Redis 6.2.14, from the `redislite` Python package. docker-compose.yml asks for Redis 8, which was not available here.
+- Linux aarch64 VM on the laptop, 4 CPUs, app and databases on localhost, one client at a time.
+So the absolute times are not the same as a Docker run on macOS. Compare run A with run B, not with other machines.
 
 ## Method
-1. `docker compose up -d` (PostgreSQL and Redis 8).
-2. Without the cache: the cache code is bypassed by `HOTEL_REDIS_URL` pointing at a port with nothing listening,
-   or by temporarily returning `load()` directly in `AvailabilityCache.free_room_numbers`. Restart `python main.py`.
-   Run `python measure.py --runs 1000`. Record the result in row A.
-3. With the cache: `docker compose exec cache redis-cli FLUSHALL`, restart `python main.py` (counters start at zero),
-   then `python measure.py --runs 1000`. Record the result in row B.
+1. Run A, no cache: `HOTEL_CACHE=off python main.py`, then `python measure.py --runs 1000`.
+   With the switch set, every search goes straight to PostgreSQL (`NoCache` in `hotel_booking/availability.py`).
+2. Run B, cache on, cold start: Redis emptied with `FLUSHALL`, then `python main.py`, then `python measure.py --runs 1000`.
+   The counters start at zero because the app was restarted.
+With Docker, the same steps are `docker compose up -d`, `docker compose exec cache redis-cli FLUSHALL`, and the same commands.
 
 ## Results
 | Run | Searches | Average | p95 | dbQueries | cacheHits | cacheMisses |
 |---|---|---|---|---|---|---|
-| A: no cache | 1,000 | | | | | |
-| B: Redis cache, empty at start | 1,000 | | | | | |
+| A: no cache | 1,000 | 2.20 ms | 2.68 ms | 2,000 | 0 | 1,000 |
+| B: Redis cache, empty at start | 1,000 | 1.19 ms | 1.47 ms | 2 | 999 | 1 |
 
-Expected from the design, to compare with your run: run A makes 2,000 database queries (2 rooms per search);
-run B makes 2 queries (one miss per room set) and 999 hits. If your numbers differ, explain why here.
+What the numbers show:
+- The database query count matches the design: 2 queries for 1,000 searches with the cache (one miss, one query per room), against 2,000 without it.
+- Average and p95 are about 45% lower with the cache. Both are far below the S1 target of p95 ≤ 1 second (quality-scenarios.md). At this size, with the database on the same machine, the cache saves time but does not decide whether S1 is met. The benefit grows when the database is remote or busy.
+- S6 asks for at least 20% less energy per 1,000 searches. Energy was not measured here, so S6 is not checked yet (P24).
 
 ## Stale result (the bug the version number prevents)
-1. Book R7 for 12–14 Nov: `POST /reservations` with Maya (201).
-2. Search 12–14 Nov again. With the invalidation in `api.py` (`availability.invalidate()` after a booking), only R8 is listed.
-3. To see the bug, comment out the `availability.invalidate()` call in `reserve`, restart, and repeat steps 1–2 with
-   a search before the booking. R7 is still listed. Then `POST` Omar for R7 (409): the booking reads PostgreSQL,
-   so the double booking is refused even though the search was stale.
-4. Write what you observed here: the search result before and after, and the status code of Omar's booking.
+Run on the same PostgreSQL and Redis, with the same code (script in the scratch folder, output copied here):
+
+```text
+== With the fix (invalidate after booking)
+search before booking: ['R7', 'R8']
+Maya books R7: 201 {'id': 'R101', 'status': 'Confirmed', 'notificationFailed': False}
+search after booking:  ['R8']
+Omar books R7 13-15: 409 Unavailable
+
+== Without the fix (invalidate disabled)
+search before booking: ['R7', 'R8']
+Maya books R7: 201 {'id': 'R101', 'status': 'Confirmed', 'notificationFailed': False}
+search after booking (stale?): ['R7', 'R8']
+Omar books R7 13-15: 409 Unavailable
+```
+
+What this shows:
+- Without the fix, the search still lists R7 after Maya's booking. The stale result is real.
+- Omar's booking is still refused with 409, because the booking reads PostgreSQL and not the cache. A stale search cannot cause a double booking, but it can mislead a guest.
+- The stale answer is only removed by the TTL (30 seconds) or by the next version change. Without the fix, nothing else clears it.
 
 ## Hot key and next bottleneck
-Write here, from your own measurements or the code: which key is hottest, what the version change costs under
-many bookings, and what would break first if the hotel had 10 times more searches (P09 covers the next step).
+- Hot key: every booking and cancellation changes the one global version. After a booking, every date range is cold at the same time, so the next searches for popular nights all miss at once (a cache stampede). The fix is cheap but not free.
+- Known race in the design: a search that started before a booking can write its old answer under the new version. That answer stays at most 30 seconds. The booking itself is safe.
+- Next bottleneck: the database check in the booking itself (`has_overlap`), which runs on every booking and is not cached. P09 moves that rule into PostgreSQL, where it can be made safe under concurrent requests.
+- With 10 times more searches, the cache hides most reads. The first thing to break would be the single Redis server and the global version, not the database for searches.
