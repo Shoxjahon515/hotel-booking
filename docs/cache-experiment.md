@@ -6,7 +6,7 @@ Both runs used the same code, the same database rows and the same machine, one a
 ## Environment of this run (not the Docker setup from docker-compose.yml)
 Docker is not installed on the laptop, so the run used the same software without containers:
 - PostgreSQL 18.6, from the `@embedded-postgres/linux-arm64` npm package (same major version as `postgres:18` in docker-compose.yml). `db/init.sql` was loaded unchanged.
-- Redis 6.2.14, from the `redislite` Python package. docker-compose.yml asks for Redis 8, which was not available here.
+- Redis 8.10.3, built from the official source tag (the latest 8.x release, the line that `redis:8` in docker-compose.yml points to). An earlier run used Redis 6.2.14 from `redislite`; its cache numbers were almost the same (avg 1.19 ms, p95 1.47 ms), so the Redis version does not change the conclusions.
 - Linux aarch64 VM on the laptop, 4 CPUs, app and databases on localhost, one client at a time.
 So the absolute times are not the same as a Docker run on macOS. Compare run A with run B, not with other machines.
 
@@ -21,15 +21,15 @@ With Docker, the same steps are `docker compose up -d`, `docker compose exec cac
 | Run | Searches | Average | p95 | dbQueries | cacheHits | cacheMisses |
 |---|---|---|---|---|---|---|
 | A: no cache | 1,000 | 2.20 ms | 2.68 ms | 2,000 | 0 | 1,000 |
-| B: Redis cache, empty at start | 1,000 | 1.19 ms | 1.47 ms | 2 | 999 | 1 |
+| B: Redis 8.10.3 cache, empty at start | 1,000 | 1.15 ms | 1.48 ms | 2 | 999 | 1 |
 
 What the numbers show:
 - The database query count matches the design: 2 queries for 1,000 searches with the cache (one miss, one query per room), against 2,000 without it.
-- Average and p95 are about 45% lower with the cache. Both are far below the S1 target of p95 ≤ 1 second (quality-scenarios.md). At this size, with the database on the same machine, the cache saves time but does not decide whether S1 is met. The benefit grows when the database is remote or busy.
+- Average and p95 are about 48% lower with the cache (run A vs run B). Both are far below the S1 target of p95 ≤ 1 second (quality-scenarios.md). At this size, with the database on the same machine, the cache saves time but does not decide whether S1 is met. The benefit grows when the database is remote or busy.
 - S6 asks for at least 20% less energy per 1,000 searches. Energy was not measured here, so S6 is not checked yet (P24).
 
 ## Stale result (the bug the version number prevents)
-Run on the same PostgreSQL and Redis, with the same code (script in the scratch folder, output copied here):
+Run on the same PostgreSQL 18.6 and Redis 8.10.3, with the same code (script in the scratch folder, output copied here):
 
 ```text
 == With the fix (invalidate after booking)
