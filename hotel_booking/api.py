@@ -13,7 +13,7 @@ from typing import Any, Callable
 
 from fastapi import Body, FastAPI
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from hotel_booking.availability import AvailabilityCache
 from hotel_booking.reservations import BookingResult, BookingService, DateRange, Guest
@@ -27,6 +27,7 @@ UnitOfWork = Callable[[], AbstractContextManager[BookingService]]
 FIELDS = ("guestName", "guestEmail", "room", "checkIn", "checkOut")
 BODY_DETAIL = "The body must be JSON with guestName, guestEmail, room, checkIn and checkOut."
 DATE_DETAIL = "checkIn and checkOut must be dates such as 2026-11-12."
+HOME_PAGE = Path(__file__).parent / "web" / "index.html"  # the booking page; it only calls the API below
 
 
 def problem(status: int, title: str, detail: str) -> JSONResponse:
@@ -63,6 +64,10 @@ def create_app(rooms: list[Room], unit_of_work: UnitOfWork,
     @app.exception_handler(RequestValidationError)
     def not_json(request, error) -> JSONResponse:
         return problem(400, "InvalidRequest", BODY_DETAIL)
+
+    @app.get("/")
+    def home() -> HTMLResponse:
+        return HTMLResponse(HOME_PAGE.read_text(encoding="utf-8"))
 
     @app.get("/openapi.yaml")
     def contract() -> Response:

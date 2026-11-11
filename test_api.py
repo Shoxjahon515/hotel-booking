@@ -65,6 +65,12 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(404, second.status_code)
         self.assertEqual("NotFound", second.json()["title"])
 
+    def test_home_page_is_html(self):
+        response = new_client().get("/")
+        self.assertEqual(200, response.status_code)
+        self.assertIn("text/html", response.headers["content-type"])
+        self.assertIn("/rooms/availability", response.text)
+
     def test_the_second_identical_search_is_a_cache_hit(self):
         stats = Stats()
         client = new_client(stats)
