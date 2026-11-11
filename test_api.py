@@ -70,6 +70,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         self.assertIn("text/html", response.headers["content-type"])
         self.assertIn("/rooms/availability", response.text)
+        self.assertIn("Bo'sh xonalar", response.text)
 
     def test_the_second_identical_search_is_a_cache_hit(self):
         stats = Stats()

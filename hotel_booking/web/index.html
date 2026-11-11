@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hotel booking</title>
+<title>Mehmonxona bron</title>
 <style>
   :root {
     --bg: #f6f4ef; --card: #ffffff; --ink: #1d2433; --muted: #6b7280; --line: #e5e1d8;
@@ -21,7 +21,10 @@
   * { box-sizing: border-box; }
   body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
          background: var(--bg); color: var(--ink); }
-  header { padding: 32px 24px 8px; max-width: 980px; margin: 0 auto; }
+  header { padding: 32px 24px 8px; max-width: 980px; margin: 0 auto; display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
+  .lang button { background: transparent; color: var(--muted); border-radius: 0; padding: 6px 12px; font-size: 13px; }
+  .lang button.on { background: var(--accent); color: var(--accent-ink); }
   header h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
   header p { margin: 4px 0 0; color: var(--muted); }
   main { max-width: 980px; margin: 0 auto; padding: 16px 24px 48px; display: grid; gap: 20px;
@@ -67,17 +70,23 @@
 </head>
 <body>
 <header>
-  <h1>Hotel booking</h1>
-  <p>Find a free room, book it, cancel it. Every action calls the same HTTP API as the tests.</p>
+  <div>
+    <h1 data-i18n="title"></h1>
+    <p data-i18n="subtitle"></p>
+  </div>
+  <div class="lang" role="group" aria-label="Til / Language">
+    <button type="button" data-lang="uz">UZ</button>
+    <button type="button" data-lang="en">EN</button>
+  </div>
 </header>
 
 <main>
   <section class="card">
-    <h2>Free rooms</h2>
+    <h2 data-i18n="freeRooms"></h2>
     <form id="search" class="row">
-      <label>Check-in <input type="date" id="checkIn" required></label>
-      <label>Check-out <input type="date" id="checkOut" required></label>
-      <button type="submit">Search</button>
+      <label><span data-i18n="checkIn"></span> <input type="date" id="checkIn" required></label>
+      <label><span data-i18n="checkOut"></span> <input type="date" id="checkOut" required></label>
+      <button type="submit" data-i18n="search"></button>
     </form>
     <div id="searchMsg" class="msg"></div>
     <div id="rooms" class="rooms"></div>
@@ -85,21 +94,21 @@
 
   <aside class="side">
     <section class="card">
-      <h2>Since the app started</h2>
+      <h2 data-i18n="statsTitle"></h2>
       <div class="stats">
-        <div class="stat"><b id="sQ">–</b><span>DB queries</span></div>
-        <div class="stat"><b id="sH">–</b><span>Cache hits</span></div>
-        <div class="stat"><b id="sM">–</b><span>Cache misses</span></div>
+        <div class="stat"><b id="sQ">–</b><span data-i18n="dbQueries"></span></div>
+        <div class="stat"><b id="sH">–</b><span data-i18n="cacheHits"></span></div>
+        <div class="stat"><b id="sM">–</b><span data-i18n="cacheMisses"></span></div>
       </div>
-      <p class="hint">From <code>GET /stats</code>. Search the same dates twice: the second time is a cache hit.</p>
+      <p class="hint" data-i18n-html="statsHint"></p>
     </section>
 
     <section class="card">
-      <h2>Bookings from this page</h2>
-      <ul id="mine" class="mine"><li style="border:0;padding:0;color:var(--muted)">None yet.</li></ul>
+      <h2 data-i18n="myBookings"></h2>
+      <ul id="mine" class="mine"></ul>
       <form id="cancelForm" class="row" style="margin-top:12px">
-        <label style="flex:1">Cancel by id <input id="cancelId" placeholder="R101" required></label>
-        <button class="ghost" type="submit">Cancel</button>
+        <label style="flex:1"><span data-i18n="cancelById"></span> <input id="cancelId" placeholder="R101" required></label>
+        <button class="ghost" type="submit" data-i18n="cancel"></button>
       </form>
       <div id="cancelMsg" class="msg"></div>
     </section>
@@ -110,9 +119,67 @@
 const $ = (id) => document.getElementById(id);
 const mine = [];
 
+const TEXT = {
+  uz: {
+    title: "Mehmonxona bron",
+    subtitle: "Bo'sh xona toping, bron qiling yoki bekor qiling. Har bir amal testlardagi HTTP API'ni chaqiradi.",
+    freeRooms: "Bo'sh xonalar", checkIn: "Kirish sanasi", checkOut: "Chiqish sanasi", search: "Qidirish",
+    statsTitle: "Ilova ishga tushgandan beri", dbQueries: "DB so'rovlari", cacheHits: "Cache topdi", cacheMisses: "Cache topmadi",
+    statsHint: "<code>GET /stats</code> dan olinadi. Bir xil sanalarni ikki marta qidiring: ikkinchisida cache topadi.",
+    myBookings: "Shu sahifadagi bronlar", none: "Hali bron yo'q.", cancelById: "Raqam bo'yicha bekor qilish", cancel: "Bekor qilish",
+    guestName: "Mehmon ismi", book: "Bron qilish", noRooms: "Bu kechalar uchun bo'sh xona yo'q.",
+    booked: (id) => `Bron qilindi: ${id}`, notifyFailed: " (tasdiq xabari yuborilmadi)",
+    taken: "Bu xonani hozirgina boshqa mehmon shu kechalardan biriga band qildi.",
+    cancelled: (id) => `${id} bekor qilindi. Kechalar yana bo'sh.`,
+    noAnswer: "Server javob bermadi.", noServer: "Server javob bermadi. python main.py ishlayaptimi?",
+    error: (s) => `Xato ${s}`,
+    // server problem titles (RFC 9457) translated for the page
+    InvalidDates: "Sanalar noto'g'ri: chiqish sanasi kirish sanasidan keyin bo'lishi kerak.",
+    InvalidRequest: "So'rov noto'g'ri: barcha maydonlarni to'ldiring.",
+    UnknownRoom: "Bunday xona yo'q.", NotFound: "Bunday tasdiqlangan bron topilmadi.",
+    Standard: "Standart", Deluxe: "Lyuks",
+  },
+  en: {
+    title: "Hotel booking",
+    subtitle: "Find a free room, book it, cancel it. Every action calls the same HTTP API as the tests.",
+    freeRooms: "Free rooms", checkIn: "Check-in", checkOut: "Check-out", search: "Search",
+    statsTitle: "Since the app started", dbQueries: "DB queries", cacheHits: "Cache hits", cacheMisses: "Cache misses",
+    statsHint: "From <code>GET /stats</code>. Search the same dates twice: the second time is a cache hit.",
+    myBookings: "Bookings from this page", none: "None yet.", cancelById: "Cancel by id", cancel: "Cancel",
+    guestName: "Guest name", book: "Book", noRooms: "No free rooms for these nights.",
+    booked: (id) => `Booked: ${id}`, notifyFailed: " (confirmation message failed)",
+    taken: "Someone else just took this room for at least one of these nights.",
+    cancelled: (id) => `${id} cancelled. The nights are free again.`,
+    noAnswer: "The server did not answer.", noServer: "The server did not answer. Is python main.py running?",
+    error: (s) => `Error ${s}`,
+    InvalidDates: null, InvalidRequest: null, UnknownRoom: null, NotFound: null,
+    Standard: "Standard", Deluxe: "Deluxe",
+  },
+};
+let lang = "uz";
+try { lang = localStorage.getItem("lang") || "uz"; } catch { /* storage may be unavailable */ }
+const t = (key, ...args) => { const v = TEXT[lang][key]; return typeof v === "function" ? v(...args) : v; };
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = t("title");
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-lang]").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
+  renderMine();
+}
+document.querySelectorAll("[data-lang]").forEach((b) => b.onclick = () => {
+  lang = b.dataset.lang;
+  try { localStorage.setItem("lang", lang); } catch { /* ignore */ }
+  applyLang(); search();
+});
+
 function show(el, kind, text) { el.className = "msg show " + kind; el.textContent = text; }
 function hide(el) { el.className = "msg"; }
-function problemText(body, fallback) { return body && body.detail ? body.detail : fallback; }
+function problemText(body, fallback) {
+  if (body && body.title && t(body.title)) return t(body.title);
+  return body && body.detail ? body.detail : fallback;
+}
 
 async function api(method, url, body) {
   const res = await fetch(url, {
@@ -133,8 +200,12 @@ async function refreshStats() {
 
 function renderMine() {
   const list = $("mine");
-  if (!mine.length) return;
   list.innerHTML = "";
+  if (!mine.length) {
+    const li = document.createElement("li");
+    li.style.cssText = "border:0;padding:0;color:var(--muted)"; li.textContent = t("none");
+    list.appendChild(li); return;
+  }
   for (const b of mine) {
     const li = document.createElement("li");
     if (b.cancelled) li.className = "cancelled";
@@ -143,7 +214,7 @@ function renderMine() {
     li.appendChild(text);
     if (!b.cancelled) {
       const btn = document.createElement("button");
-      btn.className = "ghost"; btn.textContent = "Cancel";
+      btn.className = "ghost"; btn.textContent = t("cancel");
       btn.onclick = () => cancel(b.id);
       li.appendChild(btn);
     }
@@ -157,13 +228,15 @@ function roomCard(room, checkIn, checkOut) {
   card.innerHTML = `
     <div class="room-head"><span class="room-num"></span><span class="tag"></span></div>
     <form>
-      <input name="guestName" placeholder="Guest name" required>
-      <input name="guestEmail" type="email" placeholder="guest@example.com" required>
-      <button type="submit">Book</button>
+      <input name="guestName" required>
+      <input name="guestEmail" type="email" placeholder="mehmon@example.com" required>
+      <button type="submit"></button>
     </form>
     <div class="msg"></div>`;
   card.querySelector(".room-num").textContent = room.number;
-  card.querySelector(".tag").textContent = room.type;
+  card.querySelector(".tag").textContent = t(room.type) || room.type;
+  card.querySelector("[name=guestName]").placeholder = t("guestName");
+  card.querySelector("button").textContent = t("book");
   const form = card.querySelector("form"), msg = card.querySelector(".msg"), btn = form.querySelector("button");
   form.onsubmit = async (e) => {
     e.preventDefault();
@@ -175,15 +248,15 @@ function roomCard(room, checkIn, checkOut) {
       if (status === 201) {
         mine.unshift({ id: data.id, room: room.number, checkIn, checkOut, cancelled: false });
         renderMine();
-        show(msg, "ok", `Booked: ${data.id}` + (data.notificationFailed ? " (confirmation message failed)" : ""));
+        show(msg, "ok", t("booked", data.id) + (data.notificationFailed ? t("notifyFailed") : ""));
         form.reset();
         setTimeout(search, 1200);
       } else if (status === 409) {
-        show(msg, "warn", "Someone else just took this room for at least one of these nights.");
+        show(msg, "warn", t("taken"));
       } else {
-        show(msg, "err", problemText(data, `Error ${status}`));
+        show(msg, "err", problemText(data, t("error", status)));
       }
-    } catch { show(msg, "err", "The server did not answer."); }
+    } catch { show(msg, "err", t("noAnswer")); }
     btn.disabled = false; refreshStats();
   };
   return card;
@@ -195,10 +268,10 @@ async function search(e) {
   hide(msg); box.innerHTML = "";
   try {
     const { status, data } = await api("GET", `/rooms/availability?checkIn=${checkIn}&checkOut=${checkOut}&limit=100`);
-    if (status !== 200) { show(msg, "err", problemText(data, `Error ${status}`)); return; }
-    if (!data.rooms.length) { box.innerHTML = '<div class="empty">No free rooms for these nights.</div>'; }
+    if (status !== 200) { show(msg, "err", problemText(data, t("error", status))); return; }
+    if (!data.rooms.length) { const empty = document.createElement("div"); empty.className = "empty"; empty.textContent = t("noRooms"); box.appendChild(empty); }
     for (const room of data.rooms) box.appendChild(roomCard(room, checkIn, checkOut));
-  } catch { show(msg, "err", "The server did not answer. Is python main.py running?"); }
+  } catch { show(msg, "err", t("noServer")); }
   refreshStats();
 }
 
@@ -208,19 +281,20 @@ async function cancel(id) {
   try {
     const { status, data } = await api("DELETE", `/reservations/${encodeURIComponent(id)}`);
     if (status === 204) {
-      show(msg, "ok", `${id} cancelled. The nights are free again.`);
+      show(msg, "ok", t("cancelled", id));
       const b = mine.find((x) => x.id === id); if (b) { b.cancelled = true; renderMine(); }
       search();
     } else {
-      show(msg, "err", problemText(data, `Error ${status}`));
+      show(msg, "err", problemText(data, t("error", status)));
     }
-  } catch { show(msg, "err", "The server did not answer."); }
+  } catch { show(msg, "err", t("noAnswer")); }
   refreshStats();
 }
 
 $("search").onsubmit = search;
 $("cancelForm").onsubmit = (e) => { e.preventDefault(); cancel($("cancelId").value.trim()); };
 $("checkIn").value = "2026-11-12"; $("checkOut").value = "2026-11-14";
+applyLang();
 search();
 </script>
 </body>
